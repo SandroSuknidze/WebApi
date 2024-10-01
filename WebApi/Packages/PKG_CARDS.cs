@@ -11,6 +11,7 @@ namespace WebApi.Packages
         public void DeleteCard(int id);
         public Card GetCardById(int id);
         public void CreateCard(Card card);
+        public void UpdateCard(Card card);
     }
     public class PKG_CARDS : PKG_BASE, IPKG_CARDS
     {
@@ -116,7 +117,7 @@ namespace WebApi.Packages
                         Name = reader.GetString(reader.GetOrdinal("name")),
                         City = reader.GetString(reader.GetOrdinal("city")),
                         State = reader.GetString(reader.GetOrdinal("state")),
-                        Photo = reader.GetString(reader.GetOrdinal("photo")),
+                        Photo = Convert.ToBase64String((byte[])reader["photo"]),
                         AvailableUnits = reader.GetInt32(reader.GetOrdinal("available_units")),
                         Wifi = reader.GetBoolean(reader.GetOrdinal("wifi")),
                         Laundry = reader.GetBoolean(reader.GetOrdinal("laundry"))
@@ -162,5 +163,35 @@ namespace WebApi.Packages
 
             cmd.ExecuteNonQuery();
         }
+
+
+        public void UpdateCard(Card card)
+        {
+            using OracleConnection con = new(ConnStr);
+            con.Open();
+
+            using OracleCommand cmd = new();
+            cmd.Connection = con;
+            cmd.CommandText = "olerning.PKG_SANDRO_CARDS.update_card";
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            cmd.Parameters.Add(new OracleParameter("p_id", OracleDbType.Int32)).Value = card.Id;
+            cmd.Parameters.Add(new OracleParameter("p_name", OracleDbType.Varchar2)).Value = card.Name;
+            cmd.Parameters.Add(new OracleParameter("p_city", OracleDbType.Varchar2)).Value = card.City;
+            cmd.Parameters.Add(new OracleParameter("p_state", OracleDbType.Varchar2)).Value = card.State;
+            byte[] photoBytes = null;
+            if (!string.IsNullOrEmpty(card.Photo))
+            {
+                var base64Data = card.Photo.Split(',')[1]; // Get the Base64 part
+                photoBytes = Convert.FromBase64String(base64Data); // Convert to byte array
+            }
+            cmd.Parameters.Add(new OracleParameter("p_photo", OracleDbType.Blob)).Value = photoBytes;
+            cmd.Parameters.Add(new OracleParameter("p_available_units", OracleDbType.Int32)).Value = card.AvailableUnits;
+            cmd.Parameters.Add(new OracleParameter("p_wifi", OracleDbType.Int32)).Value = card.Wifi ? 1 : 0;
+            cmd.Parameters.Add(new OracleParameter("p_laundry", OracleDbType.Int32)).Value = card.Laundry ? 1 : 0;
+
+            cmd.ExecuteNonQuery();
+        }
+
     }
 }
