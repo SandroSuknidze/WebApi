@@ -16,10 +16,6 @@ namespace WebApi.Controllers
         {
             List<Card> cards = [];
             cards = cards_package.GetCards();
-            if (cards == null || cards.Count == 0)
-            {
-                return NotFound("No cards found.");
-            }
             return Ok(cards);
         }
 
