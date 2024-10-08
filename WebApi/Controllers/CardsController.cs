@@ -93,5 +93,62 @@ namespace WebApi.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred: " + ex.Message);
             }
         }
+
+        [HttpGet("sortedByNameASC")]
+        public ActionResult<List<Card>> GetCardsSortedByNameASC()
+        {
+            try
+            {
+                List<Card> cards = cards_package.GetCards();
+                cards = cards.OrderBy(card => card.Name).ToList();
+                return Ok(cards);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred: " + ex.Message);
+            }
+        }
+
+        [HttpGet("sortedByNameDESC")]
+        public ActionResult<List<Card>> GetCardsSortedByNameDESC()
+        {
+            try
+            {
+                List<Card> cards = cards_package.GetCards();
+                cards = cards.OrderByDescending(card => card.Name).ToList();
+                return Ok(cards);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred: " + ex.Message);
+            }
+        }
+
+        [HttpGet("filter")]
+        public ActionResult<List<Card>> GetFilteredCards([FromQuery] string? name, [FromQuery] bool? wifi)
+        {
+            try
+            {
+                List<Card> cards = cards_package.GetCards();
+                if (!string.IsNullOrEmpty(name))
+                {
+                    cards = cards.Where(card => card.Name.Contains(name, StringComparison.OrdinalIgnoreCase)).ToList();
+                }
+
+                if (wifi.HasValue)
+                {
+                    cards = cards.Where(card => card.Wifi == wifi.Value).ToList();
+                }
+
+                return Ok(cards);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred: " + ex.Message);
+            }
+        }
+
+
+
     }
 }
