@@ -66,6 +66,7 @@ namespace WebApi.Packages
                         Id = reader.GetInt32(reader.GetOrdinal("id")),
                         Email = reader.GetString(reader.GetOrdinal("email")),
                         Password = reader.GetString(reader.GetOrdinal("password")),
+                        Role = reader.GetString(reader.GetOrdinal("role"))
                     };
                 }
                 else

@@ -24,6 +24,7 @@ namespace WebApi.Auth
                 [
                     new("UserID", user.Id.ToString(), ClaimValueTypes.Integer),
                     new("FirstName", user.Email, ClaimValueTypes.String),
+                    new("Role", user.Role, ClaimValueTypes.String)
                 ]),
                 Expires = DateTime.UtcNow.AddMinutes(30),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenKey), SecurityAlgorithms.HmacSha256Signature)
