@@ -10,5 +10,6 @@
         public required int AvailableUnits { get; set; }
         public required bool Wifi { get; set; }
         public required bool Laundry { get; set; }
+        public required string Pdf { get; set; }
     }
 }

@@ -47,7 +47,8 @@ namespace WebApi.Packages
                     Photo = Convert.ToBase64String((byte[])reader["photo"]),
                     AvailableUnits = reader.GetInt32(reader.GetOrdinal("available_units")),
                     Wifi = reader.GetBoolean(reader.GetOrdinal("wifi")),
-                    Laundry = reader.GetBoolean(reader.GetOrdinal("laundry"))
+                    Laundry = reader.GetBoolean(reader.GetOrdinal("laundry")),
+                    Pdf = reader["pdf"] == DBNull.Value ? null : Convert.ToBase64String((byte[])reader["pdf"]),
                 };
 
                 cards.Add(card);
@@ -120,7 +121,8 @@ namespace WebApi.Packages
                         Photo = Convert.ToBase64String((byte[])reader["photo"]),
                         AvailableUnits = reader.GetInt32(reader.GetOrdinal("available_units")),
                         Wifi = reader.GetBoolean(reader.GetOrdinal("wifi")),
-                        Laundry = reader.GetBoolean(reader.GetOrdinal("laundry"))
+                        Laundry = reader.GetBoolean(reader.GetOrdinal("laundry")),
+                        Pdf = reader["pdf"] == DBNull.Value ? null :Convert.ToBase64String((byte[])reader["pdf"]),
                     };
                 }
                 else
@@ -160,6 +162,13 @@ namespace WebApi.Packages
             cmd.Parameters.Add(new OracleParameter("p_available_units", OracleDbType.Int32)).Value = card.AvailableUnits;
             cmd.Parameters.Add(new OracleParameter("p_wifi", OracleDbType.Int32)).Value = card.Wifi ? 1 : 0;
             cmd.Parameters.Add(new OracleParameter("p_laundry", OracleDbType.Int32)).Value = card.Laundry ? 1 : 0;
+            byte[] pdfBytes = null;
+            if (!string.IsNullOrEmpty(card.Pdf))
+            {
+                var base64Data = card.Pdf.Split(',')[1];
+                pdfBytes = Convert.FromBase64String(base64Data);
+            }
+            cmd.Parameters.Add(new OracleParameter("p_pdf", OracleDbType.Blob)).Value = pdfBytes;
 
             cmd.ExecuteNonQuery();
         }
@@ -189,6 +198,13 @@ namespace WebApi.Packages
             cmd.Parameters.Add(new OracleParameter("p_available_units", OracleDbType.Int32)).Value = card.AvailableUnits;
             cmd.Parameters.Add(new OracleParameter("p_wifi", OracleDbType.Int32)).Value = card.Wifi ? 1 : 0;
             cmd.Parameters.Add(new OracleParameter("p_laundry", OracleDbType.Int32)).Value = card.Laundry ? 1 : 0;
+            byte[] pdfBytes = null;
+            if (!string.IsNullOrEmpty(card.Pdf))
+            {
+                var base64Data = card.Pdf.Split(',')[1]; // Get the Base64 part
+                pdfBytes = Convert.FromBase64String(base64Data); // Convert to byte array
+            }
+            cmd.Parameters.Add(new OracleParameter("p_pdf", OracleDbType.Blob)).Value = pdfBytes;
 
             cmd.ExecuteNonQuery();
         }
