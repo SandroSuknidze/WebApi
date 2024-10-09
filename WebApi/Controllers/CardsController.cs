@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using CsvHelper;
+using CsvHelper.Configuration;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
 using WebApi.Models;
 using WebApi.Packages;
 
@@ -147,6 +150,38 @@ namespace WebApi.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred: " + ex.Message);
             }
         }
+
+        [HttpPost("uploadCSV")]
+        //public ActionResult UploadCSV(IFormFile file)
+        public ActionResult UploadCSV()
+        {
+            try
+            {
+                var dataFolder = Path.Combine(Directory.GetCurrentDirectory(), "Data");
+                var filePath = Path.Combine(dataFolder, "bk.csv");
+
+                using var reader = new StreamReader(filePath);
+                var csvConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
+                {
+                    BadDataFound = null // Ignore bad data
+                };
+                using var csv = new CsvReader(reader, csvConfig);
+
+                var records = csv.GetRecords<Card>().ToList();
+
+                foreach (var record in records)
+                {
+                    cards_package.CreateCard(record);
+                }
+
+                return Ok(records);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred: " + ex.Message);
+            }
+        }
+
 
 
 
