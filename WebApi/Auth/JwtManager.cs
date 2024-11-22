@@ -3,6 +3,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using WebApi.Models;
+using WebApi.Utils;
 
 namespace WebApi.Auth
 {
@@ -24,7 +25,7 @@ namespace WebApi.Auth
                 [
                     new("UserID", user.Id.ToString(), ClaimValueTypes.Integer),
                     new("FirstName", user.Email, ClaimValueTypes.String),
-                    new("Role", user.Role, ClaimValueTypes.String)
+                    new("Role", user.Role.ToString(), ClaimValueTypes.Integer)
                 ]),
                 Expires = DateTime.UtcNow.AddMinutes(30),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenKey), SecurityAlgorithms.HmacSha256Signature)

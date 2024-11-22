@@ -7,6 +7,7 @@ using System.Text;
 using WebApi.Auth;
 using WebApi.Models;
 using WebApi.Packages;
+using WebApi.Services;
 
 namespace WebApi
 {
@@ -22,6 +23,9 @@ namespace WebApi
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.Configure<MailjetSettings>(builder.Configuration.GetSection("Mailjet"));
+            builder.Services.AddScoped<IEmailService, EmailService>();
+
 
             builder.Services.AddScoped<IPKG_CARDS, PKG_CARDS>();
             builder.Services.AddScoped<IPKG_USERS, PKG_USERS>();
