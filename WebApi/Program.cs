@@ -65,6 +65,7 @@ namespace WebApi
                         new string[] { }
                     }
                 });
+
             });
 
             builder.Services.AddAuthentication(x =>

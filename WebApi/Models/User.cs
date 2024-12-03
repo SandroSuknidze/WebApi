@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using WebApi.enums;
+using WebApi.Validators;
 
 namespace WebApi.Models
 {
@@ -17,11 +18,13 @@ namespace WebApi.Models
         [MaxLength(255)]
         public required string LastName { get; set; }
         [Required]
-        public required int PersonalId { get; set; }
+        [ExactLengthLong(11)]
+        public required long PersonalId { get; set; }
         public string? Avatar { get; set; }
         [Required]
         [MinLength(8)]
         public required string Password { get; set; }
         public required UserRole Role { get; set; }
-    }
+        public string? ActivationCode { get; set; }
+}
 }

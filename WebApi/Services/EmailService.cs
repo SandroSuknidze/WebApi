@@ -27,11 +27,26 @@ namespace WebApi.Services
         {
             try
             {
+
+                var emailBody = $@"
+                    <h3>DEVELOPMENT TEST Email Verification Code</h3>
+                    <p><strong>Disclaimer:</strong> This email is part of a <strong>development testing process</strong> for Online Clinic and is not intended for live or production use.</p>
+                    <p>Thank you for registering with Online Clinic.</p>
+                    <p>Your verification code is: <strong>{code}</strong></p>
+                    <p>This code will expire in 2 minutes.</p>
+                    <p>If you did not request this email, please contact us at <a href='mailto:support@[yourdomain].com'>support@[yourdomain].com</a>.</p>
+                    <hr>
+                    <p style='color: gray; font-size: small;'>This email is part of a development testing process for <strong>Online Clinic</strong>. If you have received this email in error, please disregard it.</p>
+                    <p>For more information, please refer to our <a href='https://www.yourdomain.com/privacy-policy'>Privacy Policy</a>.</p>
+                    <p><strong>Disclaimer:</strong> This email is part of a <strong>development testing process</strong> for Online Clinic and is not intended for live or production use.</p>";
+
+
                 var email = new TransactionalEmailBuilder()
-                    .WithFrom(new SendContact(_settings.SenderEmail, _settings.SenderName))
+                    .WithFrom(new SendContact(_settings.SenderEmail, "Online Clinic Development"))
                     .WithSubject("Email Verification Code")
-                    .WithHtmlPart($"<h3>Your verification code is: {code}</h3><p>This code will expire in 2 minutes.</p>")
+                    .WithHtmlPart(emailBody)
                     .WithTo(new SendContact(toEmail))
+                    .WithHeader("X-Environment", "Development")
                     .Build();
 
                 var response = await _client.SendTransactionalEmailAsync(email);

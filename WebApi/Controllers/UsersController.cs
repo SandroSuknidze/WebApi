@@ -1,12 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Auth;
+using WebApi.DTO;
 using WebApi.Models;
 using WebApi.Packages;
 using WebApi.Services;
-using WebApi.Utils;
 
 namespace WebApi.Controllers
 {
@@ -20,24 +19,26 @@ namespace WebApi.Controllers
         private readonly IEmailService emailService = emailService;
 
         [HttpPost("login")]
-        public IActionResult Login(User user)
+        public IActionResult Login(LoginRequest loginRequest)
         {
             try
             {
-                //var existingUser = pKG_USERS.GetUserByEmail(user.Email);
-                //if (existingUser == null)
-                //{
-                //    return Unauthorized("Invalid email or password.");
-                //}
+                User? existingUser = pKG_USERS.GetUserByEmail(loginRequest.Email);
+                if (existingUser == null)
+                {
+                    return Unauthorized("Invalid email or password.");
+                }
 
-                //if (existingUser.Password != user.Password)
-                //{
-                //    return Unauthorized("Invalid email or password.");
-                //}
+                var passwordHasher = new PasswordHasher<User>();
+                var verificationResult = passwordHasher.VerifyHashedPassword(existingUser, existingUser.Password, loginRequest.Password);
 
-                //var token = jwtManager.GetToken(existingUser);
-                //return Ok(token);
-                return StatusCode(200);
+                if (verificationResult != PasswordVerificationResult.Success)
+                {
+                    return Unauthorized("Invalid email or password.");
+                }
+
+                var token = jwtManager.GetToken(existingUser);
+                return Ok(token);
             }
 
             catch (KeyNotFoundException)
@@ -55,19 +56,25 @@ namespace WebApi.Controllers
         {
             try
             {
-                bool existingUser = pKG_USERS.GetUserByEmail(user.Email);
-                if (existingUser)
+                if (pKG_USERS.CheckUserByEmail(user.Email))
                 {
-                    return Conflict("User with this email already exists.");
+                    return Conflict(new ErrorResponse{ ErrorCode = "EMAIL_TAKEN", ErrorMessage = "მომხმარებელი ამ ელ. ფოსტით უკვე არსებობს." });
                 }
 
-                bool existingUser2 = pKG_USERS.GetUserByPersonalId(user.PersonalId);
-                if (existingUser2)
+                if (pKG_USERS.GetUserByPersonalId(user.PersonalId))
                 {
-                    return Conflict("User with this personal ID already exists.");
+                    return Conflict(new ErrorResponse { ErrorCode = "ID_TAKEN", ErrorMessage = "მომხმარებელი ამ პირადი ნომრით უკვე არსებობს." });
                 }
-                //user.Password = passwordHasher.HashPassword(user, user.Password);
+
+                if (!pKG_USERS.IsVerificationCodeValid(user.Email, user.ActivationCode)) {
+                    return Conflict(new ErrorResponse { ErrorCode = "INVALID_CODE", ErrorMessage = "კოდი არაა ვალუდური." });
+                }
+
+                var passwordHasher = new PasswordHasher<User>();
+                user.Password = passwordHasher.HashPassword(user, user.Password);
+
                 pKG_USERS.AddUser(user);
+
                 var token = jwtManager.GetToken(user);
                 return Ok(token);
             }
@@ -94,7 +101,7 @@ namespace WebApi.Controllers
                     return BadRequest("Email is required.");
                 }
 
-                bool existingUser = pKG_USERS.GetUserByEmail(email);
+                bool existingUser = pKG_USERS.CheckUserByEmail(email);
                 return Ok(new { emailExists = existingUser });
             }
             catch (Exception ex)
@@ -103,19 +110,33 @@ namespace WebApi.Controllers
             }
         }
 
-        [HttpPost("send-verification-code")]
-        public async Task<IActionResult> SendVerificationCode([FromBody] string email)
+        [HttpGet("check-personal-id")]
+        public IActionResult CheckPersonalId([FromQuery] long personalId)
         {
             try
             {
-                if (string.IsNullOrEmpty(email))
+                if (personalId == 0)
                 {
-                    return BadRequest("Email is required.");
+                    return BadRequest("Personal ID is required.");
                 }
 
-                int verificationCode = CodeGenerator.GenerateVerificationCode();
-                await emailService.SendVerificationEmailAsync(email, verificationCode);
-                return Ok();
+                bool existingUser = pKG_USERS.GetUserByPersonalId(personalId);
+                return Ok(new { personalIdExists = existingUser });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred: " + ex.Message);
+            }
+        }
+
+        [HttpPost("send-verification-code")]
+        public async Task<IActionResult> SendVerificationCode([FromBody] EmailVerificationRequest request)
+        {
+            try
+            {
+
+                await pKG_USERS.SendVerificationCode(request.Email);
+                return Ok(new { message = "Verification code sent successfully" });
             }
             catch (Exception ex)
             {

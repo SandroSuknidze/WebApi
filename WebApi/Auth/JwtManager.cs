@@ -24,10 +24,13 @@ namespace WebApi.Auth
                 Subject = new ClaimsIdentity(
                 [
                     new("UserID", user.Id.ToString(), ClaimValueTypes.Integer),
-                    new("FirstName", user.Email, ClaimValueTypes.String),
+                    new("FirstName", user.FirstName, ClaimValueTypes.String),
+                    new("LastName", user.LastName, ClaimValueTypes.String),
+                    new("Email", user.Email, ClaimValueTypes.String),
+                    new("PersonalId", user.PersonalId.ToString(), ClaimValueTypes.Integer),
                     new("Role", user.Role.ToString(), ClaimValueTypes.Integer)
                 ]),
-                Expires = DateTime.UtcNow.AddMinutes(30),
+                Expires = DateTime.UtcNow.AddHours(1),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenKey), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
