@@ -31,6 +31,8 @@ namespace WebApi
             builder.Services.AddScoped<IPKG_USERS, PKG_USERS>();
             builder.Services.AddScoped<IJwtManager, JwtManager>();
             builder.Services.AddScoped<PasswordHasher<User>>();
+            builder.Services.AddScoped<IPKG_CATEGORIES, PKG_CATEGORIES>();
+            builder.Services.AddScoped<IPKG_DOCTORS, PKG_DOCTORS>();
 
             builder.Services.AddCors(options =>
             {
