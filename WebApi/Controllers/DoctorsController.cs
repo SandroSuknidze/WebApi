@@ -16,9 +16,9 @@ namespace WebApi.Controllers
         private readonly IPKG_DOCTORS pKG_DOCTORS = pKG_DOCTORS;
 
         [HttpGet]
-        public IEnumerable<DoctorCategoriesDTO> Get()
+        public IEnumerable<DoctorCategoriesDTO> Get([FromQuery] string? name, [FromQuery] string? category)
         {
-            var doctors = pKG_DOCTORS.GetDoctors();
+            var doctors = pKG_DOCTORS.GetDoctors(name, category);
             return doctors;
         }
 

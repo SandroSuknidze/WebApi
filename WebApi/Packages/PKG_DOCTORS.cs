@@ -9,7 +9,7 @@ namespace WebApi.Packages
     public interface IPKG_DOCTORS
     {
         void AddDoctor(Doctor doctor);
-        List<DoctorCategoriesDTO> GetDoctors();
+        List<DoctorCategoriesDTO> GetDoctors(string? name, string? category);
     }
     public class PKG_DOCTORS : PKG_BASE, IPKG_DOCTORS
     {
@@ -58,16 +58,16 @@ namespace WebApi.Packages
             conn.Close();
         }
 
-        public List<DoctorCategoriesDTO> GetDoctors()
+        public List<DoctorCategoriesDTO> GetDoctors(string? name, string? category)
         {
-            OracleConnection conn = new()
+            using OracleConnection conn = new()
             {
                 ConnectionString = ConnStr
             };
 
             conn.Open();
 
-            OracleCommand cmd = new()
+            using OracleCommand cmd = new()
             {
                 Connection = conn,
                 CommandText = "olerning.PKG_SANDRO_DOCTORS.get_doctors",
@@ -75,8 +75,10 @@ namespace WebApi.Packages
             };
 
             cmd.Parameters.Add("p_doctors", OracleDbType.RefCursor).Direction = ParameterDirection.Output;
+            cmd.Parameters.Add("p_name", OracleDbType.Varchar2).Value = string.IsNullOrEmpty(name) ? DBNull.Value : (object)name;
+            cmd.Parameters.Add("p_category_name", OracleDbType.Varchar2).Value = string.IsNullOrEmpty(category) ? DBNull.Value : (object)category;
 
-            List<DoctorCategoriesDTO> doctors = [];
+            List<DoctorCategoriesDTO> doctors = new();
 
             try
             {
@@ -99,14 +101,11 @@ namespace WebApi.Packages
             }
             catch (OracleException ex)
             {
-                throw new Exception("An error occurred while getting the categories: " + ex.Message);
-            }
-            finally
-            {
-                conn.Close();
+                throw new Exception("An error occurred while getting the doctors: " + ex.Message);
             }
 
             return doctors;
         }
+
     }
 }
